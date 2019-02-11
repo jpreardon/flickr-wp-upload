@@ -1,10 +1,15 @@
 # Worklog
 
+## 2019-02-10
+
+- Started to get API call for image upload working in Python
+- Looks like the [requests](http://docs.python-requests.org/en/master/) library might be the one to use for accessing the API
+
 ## 2019-02-09
 
 *The journey of a thousand miles begins with one step.*
 
-- Initialize a repository with the requisite README, LICENCE and worklog.
+- Initialize a repository with the requisite README, LICENSE and worklog.
 - Did some analysis of how this might work:
   - There's a [flickr-to-wp plugin](https://github.com/bradt/flickr-to-wp). It hasn't been updated since 2011 though. This takes photos directly from Flickr, so not exactly what I want to do.
   - I think things should map out like this:
@@ -22,7 +27,7 @@
     curl --request POST \
     --url https://jpreardon.com/wp-json/wp/v2/media \
     --header "cache-control: no-cache" \
-    --header "content-disposition: attachment; filename=test.jpg" \
+    --header "content-disposition: attachment; filename=test1.jpg" \
     --header "authorization: Basic [Base 64 encoded application password]" \
     --header "content-type: image/jpeg" --data-binary "@test.jpg" \
     --location
