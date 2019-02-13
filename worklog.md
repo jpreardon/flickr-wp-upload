@@ -1,5 +1,34 @@
 # Worklog
 
+## 2019-02-12
+
+- Spent time trying to install python packages (I want requests). I tried just putting the requests directory here, but there are a lot of dependencies.
+- I stopped avoiding the inevitable and [installed python 3](https://docs.python-guide.org/starting/install3/osx/#install3-osx)
+- Also installed [pipenv](https://docs.python-guide.org/dev/virtualenvs/#virtualenvironments-ref)
+- Successfully sent an image to wordpress, [thanks stackoverflow](https://stackoverflow.com/questions/14365027/python-post-binary-data)! Also updated the meta data on the image.
+- Here's how I'm thinking this will work:
+  - Part 1, upload all the images. 
+    - Just point a script at a directory with a bunch of images, upload every one of them
+    - Keep a log file with a line for each file containing the file name, the uploaded URL, and maybe the image ID
+    - Maybe keep a separate error log
+    - Maybe convert the "success log" to a JSON file
+  - Part 2, update all the meta data for the uploaded files from the photo_...json files (meta data is sparse on a lot of photos). This could be driven off of the log file created above.
+    - Title = name
+    - Description = description + date_taken + tag list?
+    - Comments? Can I get the comments in there somehow? 
+  - Part 3, create albums from the albums.json file.
+    - Each album will be a new post with a gallery?
+    - Category = flickr
+    - Title = title
+    - Description = description
+    - There is a cover photo in the json file, maybe that can be the featured photo?
+  - Things I'm going to lose
+    - Tags, not
+    - Notes: Some photos have notes, I'm just going to ignore them
+    - Sets & galleries. I never had any of these on flickr, so no loss for me.
+    - Testimonials... meh.
+    - Privacy settings. I know I have a bunch of photos that were friends & family or private. I'm thinking I'm OK opening it up now. However, I might want to make note of which ones were not public in the log files I'm producing so I can go back and look at them.
+
 ## 2019-02-10
 
 - Started to get API call for image upload working in Python
