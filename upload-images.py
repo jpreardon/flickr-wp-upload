@@ -25,10 +25,13 @@ for dirname, direnames, filenames in os.walk(photo_directory):
         'content-type': 'image/jpeg'
       }
       res = requests.post(url, data = file, headers = headers)
-      # Write a line containing the file name, the uploaded URL, and maybe the image ID
-      with open('upload.log', 'a+') as log_file:
-        log_file.write(filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
-      print(filename + ' uploaded!')
+      if res.status_code != 201:
+        print('Error with ' + filename + ': ' + str(res.status_code))
+      else:
+        # Write a line containing the file name, the uploaded URL, and maybe the image ID
+        with open('upload.log', 'a+') as log_file:
+          log_file.write(filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
+        print(filename + ' uploaded!')
 
 
 '''

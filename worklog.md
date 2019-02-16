@@ -5,7 +5,29 @@
 - Check status after upload for errors
 - Move files to a subdirectory after load option?
 - Stream photos instead of straight post?
-- **Problem**: Many images are not rotated properly. I have a feeling this might require manual intervention. :(
+- **Problem**: Many images are not rotated properly. I have a feeling this might require manual intervention. :( Maybe they should be [rotated](https://www.daniweb.com/programming/software-development/code/216426/rotating-an-image-python) before they are uploaded.
+
+## Overall Notes
+
+### Dependencies 
+
+- [pipenv](https://pipenv.readthedocs.io/en/latest/)
+- [requests](http://docs.python-requests.org/en/master/)
+- [pillow](https://python-pillow.org/)
+- [piexif](https://pypi.org/project/piexif/)
+
+## 2019-02-16
+
+- The image rotation issue is bugging me. Should try to solve that before moving on, otherwise, the media library will be a huge mess.
+- Automatically rotating the images in Wordpress doesn't seem to be an option. I tried this [plug-in](https://wordpress.org/plugins/fix-image-rotation/), but it caused the API calls to fail. Rotating it within Wordpress also seems to remove a fair amount of the EXIF data. That's not a huge deal, but it's slow and manual.
+- Installed [pillow](https://python-pillow.org/) in the virtual env.
+- [This post](https://stackoverflow.com/questions/4764932/in-python-how-do-i-read-the-exif-data-for-an-image) helped me read the EXIF information from the image, I am most interested in ["Orientation"](http://sylvana.net/jpegcrop/exif_orientation.html) at this point.
+- Things I learned about rotating images with pillow
+  - Image.rotate(270) rotated the image, but kept the original dimensions, resulting in some clipping. [This article](https://dzone.com/articles/image-processing-in-python-with-pillow) explains this pretty clearly and talks about the "expand" option. 
+  - Image.transpose(Image.ROTATE_270) did what I expected it to do.
+  - EXIF data does not get preserved in the new image. [piexif](https://pypi.org/project/piexif/) seems to be the answer! There's an example [here](https://piexif.readthedocs.io/en/latest/sample.html#with-pil-pillow) of rotating an image based on the EXIF orientation value (and removing that value). I'm tried the same, but changed the value to "1" and it seemed to work fine both locally and after upload to Wordpress.
+  - Rotated images were smaller than the original. That was due to the quality setting when saved. I set it at 93 rather than the default 75.
+
 
 ## 2019-02-15
 

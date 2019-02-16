@@ -1,4 +1,8 @@
 .DS_Store
+upload.log
+
+# This stuff can probably be removed after testing
 test.jpg
 flickr-test-data
-upload.log
+test-old.jpg
+test-rot.jpg
