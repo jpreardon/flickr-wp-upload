@@ -1,5 +1,12 @@
 # Worklog
 
+## TODO
+
+- Check status after upload for errors
+- Move files to a subdirectory after load option?
+- Stream photos instead of straight post?
+- **Problem**: Many images are not rotated properly. I have a feeling this might require manual intervention. :(
+
 ## 2019-02-15
 
 Before I go much further, I want to set up a test environment rather than subjecting my personal site to the abuse repeatedly uploading and deleting images...
