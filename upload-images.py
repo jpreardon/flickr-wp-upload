@@ -3,6 +3,7 @@
 import requests
 import sys
 import json
+import os
 
 # TODO - There're almost more lines of TODO than code at this point, this is far from done.
 
@@ -10,20 +11,30 @@ import json
 
 url = sys.argv[1]
 app_password = sys.argv[2]
+photo_directory = sys.argv[3]
 
-# TODO: File should be dynamic and come from a certain directory or something
-filename = 'test.jpg'
-file = open(filename, 'rb').read()
+# Loop through the given directory and upload every .jpg found
+for dirname, direnames, filenames in os.walk(photo_directory):
+  for filename in filenames:
+    if filename.endswith('.jpg'):
+      file = open(photo_directory + '/' + filename, 'rb').read()
+      headers = {
+        'cache-control': 'no-cache',
+        'content-disposition': 'attachment; filename=%s' % filename,
+        'authorization': 'Basic %s' % app_password,
+        'content-type': 'image/jpeg'
+      }
+      res = requests.post(url, data = file, headers = headers)
+      # Write a line containing the file name, the uploaded URL, and maybe the image ID
+      with open('upload.log', 'a+') as log_file:
+        log_file.write(filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
+      print(filename + ' uploaded!')
 
-headers = {
-  'cache-control': 'no-cache',
-  'content-disposition': 'attachment; filename=%s' % filename,
-  'authorization': 'Basic %s' % app_password,
-  'content-type': 'image/jpeg'
-}
+log_file.close()
 
-# Send the image
-res = requests.post(url, data = file, headers = headers)
+
+'''
+# Everything below is for updating, which we're not working on right now...
 
 # According to someone on the internet, the meta information needs to happen in a different request
 # I was unable to get it to work in one either, so we do it in two...
@@ -47,3 +58,5 @@ res2 = requests.post(update_url, json = payload, headers = update_headers)
 
 # TODO: The output should be more informative
 print(res2.json())
+
+'''

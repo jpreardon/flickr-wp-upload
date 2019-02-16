@@ -1,5 +1,18 @@
 # Worklog
 
+## 2019-02-15
+
+Before I go much further, I want to set up a test environment rather than subjecting my personal site to the abuse repeatedly uploading and deleting images...
+
+- Create a copy of my site
+  - Database
+  - Files
+- Create a test set of images and JSON files (instead of trying to upload 2000 pictures every time)
+- Modify script to take a directory name and attempt to upload everything in it.
+- Log file name, the uploaded URL, and (wordpress) image ID to upload.log file.
+- **Problem**: Many images are not rotated properly. I have a feeling this might require manual intervention. :(
+
+
 ## 2019-02-12
 
 - Spent time trying to install python packages (I want requests). I tried just putting the requests directory here, but there are a lot of dependencies.
