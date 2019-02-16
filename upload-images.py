@@ -30,8 +30,6 @@ for dirname, direnames, filenames in os.walk(photo_directory):
         log_file.write(filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
       print(filename + ' uploaded!')
 
-log_file.close()
-
 
 '''
 # Everything below is for updating, which we're not working on right now...
