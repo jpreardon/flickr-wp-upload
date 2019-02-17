@@ -7,98 +7,115 @@ import os
 import pprint
 import re
 
+url = sys.argv[1]
+app_password = sys.argv[2]
+json_dir = sys.argv[3]
+logfile = sys.argv[4]
+
 pp = pprint.PrettyPrinter(indent=4)
 
-filename = 'flickr-test-data/data/photo_9079456535.json'
-#filename = 'flickr-test-data/data/photo_9079476429.json'
 
-file = open(filename, 'r')
-photo_info = json.load(file)
+'''
+What needs to happen here?
 
-if photo_info['name']:
-  print(photo_info['name'])
-# Create Description
-description = ''
+1) Open log file
+2) Find associated json file based on ID
+3) Open json file
+4) Bulid description from description, tags, date taken
+5) Update wordpress based on ID in log file
+'''
 
-if photo_info['description']:
-  description = photo_info['description'] + '\n'
+# Open log file
+log = open(logfile, 'r')
+for line in log:
+  fileid = line.split('|')[0]
+  wpid = line.split('|')[3].rstrip()
 
-if photo_info['tags']:
-  description += 'Tags:'
-  for tag in photo_info['tags']:
-    description += ' #' + tag['tag']
-  description += '\n'
+  # Find associated json file based on ID
 
-if photo_info['date_taken']:
-  description += 'Date taken: ' + photo_info['date_taken']
+  # Load the files in the directory
+  jsonfiles = os.listdir(json_dir)
 
-print(description)
-print(photo_info['privacy'])
+  # find the file we care about
+  # This seems inefficient, but whatever
+  for file in jsonfiles:
+    if file.find(fileid) > 0:
+      jsonfile = file
 
-# Let's strip the flickr ID out of the filename when it goes to wordpress
-# graf_5214959221_o.jpg It will be the part from the right between the "." and the last "_", inclusive 
+      filename = json_dir + '/' + jsonfile
 
-# This doesn't really work because some filenames include underscores
-# orig = 'graf_5214959221_o.jpg'
-# # Number of undersscores
-# print(orig.count('_'))
-# orig = orig.split('_')
-# # Flickr ID
-# print(orig[1])
-# # File name + Extension
-# print(orig[0] + orig[2][orig[2].rfind('.'):])
+      # Open json file
+      file = open(filename, 'r')
+      photo_info = json.load(file)
 
-# Crap, there are some weird ones that have no filename so the the pattern is reversed :(
-# They have alpha where only numeric should be, like this:
-# 2248328315_058f0b8c35_o.jpg
+      # Bulid description from description, tags, date taken
+      description = ''
+      if photo_info['description']:
+        description = photo_info['description'] + '\n'
 
-# def extractflickerid(filename):
+      if photo_info['tags']:
+        description += 'Tags:'
+        for tag in photo_info['tags']:
+          description += ' #' + tag['tag']
+        description += '\n'
 
-#   # This is the file extension
-#   extension = filename[filename.rfind('.'):]
-#   # This is the flickr ID
-#   flickrid = filename[:filename.rfind('_o.')]
-#   flickrid = flickrid[flickrid.rfind('_') + 1:]
-#   # This is the filename
-#   imgfile = filename[:filename.rfind('_o.')]
-#   imgfile = imgfile[:imgfile.rfind('_')]
+      if photo_info['date_taken']:
+        description += 'Date taken: ' + photo_info['date_taken'] + '\n'
 
-#   if re.search(r"\D", flickrid) is not None:
-#     return [imgfile, flickrid  + extension]
-#   else:
-#     return [flickrid, imgfile + extension]
+      description += 'Imported from flickr'
 
-# #flickrid, origname = extractflickerid('_dsc7328_147_jpg_1908369723_o.jpg')
-# flickrid, origname = extractflickerid('2248328315_058f0b8c35_o.jpg')
 
-# print(flickrid)
-# print(origname)
+      # Update wordpress based on ID in log file
 
-#orig = 'graf_5214959221_o.jpg'
-# orig = '_dsc7328_147_jpg_1908369723_o.jpg'
-# print(orig)
-# # This is the file extension
-# extension = orig[orig.rfind('.'):]
-# # This is the flickr ID
-# flickrid = orig[:orig.rfind('_o.')]
-# flickrid = flickrid[flickrid.rfind('_') + 1:]
-# # This is the filename
-# filename = orig[:orig.rfind('_o.')]
-# filename = filename[:filename.rfind('_')]
+      update_headers = {
+        'cache-control': 'no-cache',
+        'authorization': 'Basic %s' % app_password,
+        'content-type': 'application/json'
+      }
 
-# print(flickrid)
-# print(filename + extension)
-# Number of undersscores
-# print(orig.count('_'))
-# orig = orig.split('_')
-# # Flickr ID
-# print(orig[1])
-# # File name + Extension
-# print(orig[0] + orig[2][orig[2].rfind('.'):])
+      # Build the payload
+      payload = {}
 
-# photo_directory = '/Users/jpreardon/Photos/flickr/photos'
+      if photo_info['name']:
+        payload['title'] = photo_info['name']
 
-# for dirname, direnames, filenames in os.walk(photo_directory):
-#   for filename in filenames:
-#     if filename.count('_') != 2:
-#       print(filename)
+      if description:
+        payload['description'] = description
+
+      if photo_info['privacy'] == 'private':
+        payload['status'] = 'private'
+
+      update_url = url + '/' + wpid
+
+      res = requests.post(update_url, json = payload, headers = update_headers)
+
+
+      print(fileid + ': ' + str(res.status_code))
+
+'''
+# Everything below is for updating, which we're not working on right now...
+
+# According to someone on the internet, the meta information needs to happen in a different request
+# I was unable to get it to work in one either, so we do it in two...
+update_headers = {
+  'cache-control': 'no-cache',
+  'authorization': 'Basic %s' % app_password,
+  'content-type': 'application/json'
+}
+
+# TODO: Payload, should, of course be dynamic
+payload = {
+  'description': 'This is the description. Maybe we\'ll put the tags in here too.', 
+  'caption': 'This is the caption.',
+  'alt_text': 'This is the alt text. Not sure what we can put here.'
+}
+
+update_url = url + '/' + str(res.json()['id'])
+
+# Update the meta data
+res2 = requests.post(update_url, json = payload, headers = update_headers)
+
+# TODO: The output should be more informative
+print(res2.json())
+
+'''
