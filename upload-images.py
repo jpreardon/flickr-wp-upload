@@ -7,17 +7,27 @@ import os
 from PIL import Image
 import piexif
 import re
+import datetime
 
-# TODO: Shouldn't run if we don't have a URL and password
+try:
+  sys.argv[3]
+except IndexError:
+  argverrormsg = 'Error, wrong number of arguments!\n'
+  argverrormsg += 'Usage: $ upload-images.py [WP REST endpoint URL] [application password] [photo directory]'
+  sys.exit(argverrormsg)
+else:
+  url = sys.argv[1]
+  app_password = sys.argv[2]
+  photo_directory = sys.argv[3]
 
-url = sys.argv[1]
-app_password = sys.argv[2]
-photo_directory = sys.argv[3]
+# Get the start time, we'll use this for the output files
+starttimestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # This is the quality of the jpgs that are saved. A value of "93" 
 # seems to keep them around the same size as the originals I was testing with.
 # I'm setting it low for testing...
 jpeg_quality = 1 #93 = close to original quality
+
 
 # This takes a flickr download filename and returns the flickr and original filename (with extension)
 def extractflickerid(filename):
@@ -102,42 +112,26 @@ for dirname, direnames, filenames in os.walk(photo_directory):
       }
       res = requests.post(url, data = file, headers = headers)
       if res.status_code != 201:
+        errlogname = 'upload_error_' + starttimestamp + '.log'
+        with open(errlogname, 'a+') as log_file:
+          # Write a line containing the flickr ID, file name, and the HTTP status
+          log_file.write(flickrid + '|' + filename + '|' + str(res.status_code) + '\n')
         print('Error with ' + filename + ': ' + str(res.status_code))
       else:
-        # Write a line containing the flickr ID, file name, the uploaded URL, and the image ID
-        with open('upload.log', 'a+') as log_file:
-          log_file.write(flickrid + '|' + filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
+        logfilename = 'upload_' + starttimestamp + '.log'
+        with open(logfilename, 'a+') as log_file:
+          # Write a line containing the flickr ID, file name, the uploaded URL, image ID, and the HTTP status
+          log_file.write(flickrid + '|' + filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '|' + str(res.status_code) + '\n')
         print(filename + ' uploaded!')
 
-      # Delete the temp file
-      os.remove(photo_directory + '/' + tmp_filename)
+      # Delete the temp file if it exists
+      if os.path.isfile(photo_directory + '/' + tmp_filename):
+        os.remove(photo_directory + '/' + tmp_filename)
 
-
-'''
-# Everything below is for updating, which we're not working on right now...
-
-# According to someone on the internet, the meta information needs to happen in a different request
-# I was unable to get it to work in one either, so we do it in two...
-update_headers = {
-  'cache-control': 'no-cache',
-  'authorization': 'Basic %s' % app_password,
-  'content-type': 'application/json'
-}
-
-# TODO: Payload, should, of course be dynamic
-payload = {
-  'description': 'This is the description. Maybe we\'ll put the tags in here too.', 
-  'caption': 'This is the caption.',
-  'alt_text': 'This is the alt text. Not sure what we can put here.'
-}
-
-update_url = url + '/' + str(res.json()['id'])
-
-# Update the meta data
-res2 = requests.post(update_url, json = payload, headers = update_headers)
-
-# TODO: The output should be more informative
-print(res2.json())
-
-'''
-
+if 'errlogname' in locals():
+  print('Completed with errors, check the error log file: ' + errlogname)
+else:
+  print('Completed, no errors.')
+print('Congrats! You\'re done with the upload part. The log file is ' + logfilename)
+print('Try the update-meta-data.py script next! Copy/paste this:')
+print('update-meta-data.py ' + url + ' ' + app_password + ' [json data directory] ' + logfilename)

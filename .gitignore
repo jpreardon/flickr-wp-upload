@@ -1,11 +1,5 @@
 .DS_Store
-upload.log
+*.log
 
 # This stuff can probably be removed after testing
-test.jpg
 flickr-test-data
-test-old.jpg
-test-rot.jpg
-test-1.jpg
-test-2.jpg
-test-3.jpg

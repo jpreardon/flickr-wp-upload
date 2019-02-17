@@ -2,10 +2,9 @@
 
 ## TODO
 
-- Update images with metadata
-- Set "private" photos to private?
+- Update images with comments
 - Create albums
-- Keep error log when uploading/updating?
+- Work on more types than .jpg
 - Refactor rotation code
 - Move files to a subdirectory after load (as an option)?
 - Stream photos instead of straight post?
@@ -28,6 +27,12 @@
 - I'm striping the flicker ID from those filenames now when they get uploaded
 - Add the flickr ID to the upload.log
 -  In some cases, the flickr ID was not where I expected it to be in the file name. It seems that the pattern is reversed (2248328315_058f0b8c35_o.jpg). I have a feeling these images never had a file name, so flickr assigned something, not sure why they would reverse the order in the filename though.
+- Put metadata upload in its own script so it can be run separately
+- "private" photos to private are being set to status = private
+- Add the name as the caption in addition to the title if there is a name
+- Write an error log when uploading/updating in upload-images.py
+- Timestamp the upload/error logs on upload-images.py
+- Add logging to update-meta-data.py
 
 ## 2019-02-16
 

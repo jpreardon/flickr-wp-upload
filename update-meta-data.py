@@ -4,31 +4,29 @@ import requests
 import sys
 import json
 import os
-import pprint
-import re
-
-url = sys.argv[1]
-app_password = sys.argv[2]
-json_dir = sys.argv[3]
-logfile = sys.argv[4]
-
-pp = pprint.PrettyPrinter(indent=4)
+import datetime
 
 
-'''
-What needs to happen here?
+try:
+  sys.argv[4]
+except IndexError:
+  argverrormsg = 'Error, wrong number of arguments!\n'
+  argverrormsg += 'Usage: $ update-meta-data.py [WP REST endpoint URL] [application password] [data directory] [upload log file]'
+  sys.exit(argverrormsg)
+else:
+  url = sys.argv[1]
+  app_password = sys.argv[2]
+  json_dir = sys.argv[3]
+  logfile = sys.argv[4]
 
-1) Open log file
-2) Find associated json file based on ID
-3) Open json file
-4) Bulid description from description, tags, date taken
-5) Update wordpress based on ID in log file
-'''
+# Get the start time, we'll use this for the output files
+starttimestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # Open log file
 log = open(logfile, 'r')
 for line in log:
   fileid = line.split('|')[0]
+  filelink = line.split('|')[2]
   wpid = line.split('|')[3].rstrip()
 
   # Find associated json file based on ID
@@ -78,6 +76,7 @@ for line in log:
 
       if photo_info['name']:
         payload['title'] = photo_info['name']
+        payload['caption'] = photo_info['name']
 
       if description:
         payload['description'] = description
@@ -88,34 +87,16 @@ for line in log:
       update_url = url + '/' + wpid
 
       res = requests.post(update_url, json = payload, headers = update_headers)
-
-
-      print(fileid + ': ' + str(res.status_code))
-
-'''
-# Everything below is for updating, which we're not working on right now...
-
-# According to someone on the internet, the meta information needs to happen in a different request
-# I was unable to get it to work in one either, so we do it in two...
-update_headers = {
-  'cache-control': 'no-cache',
-  'authorization': 'Basic %s' % app_password,
-  'content-type': 'application/json'
-}
-
-# TODO: Payload, should, of course be dynamic
-payload = {
-  'description': 'This is the description. Maybe we\'ll put the tags in here too.', 
-  'caption': 'This is the caption.',
-  'alt_text': 'This is the alt text. Not sure what we can put here.'
-}
-
-update_url = url + '/' + str(res.json()['id'])
-
-# Update the meta data
-res2 = requests.post(update_url, json = payload, headers = update_headers)
-
-# TODO: The output should be more informative
-print(res2.json())
-
-'''
+      if res.status_code != 200:
+        errlogname = 'update_error_' + starttimestamp + '.log'
+        with open(errlogname, 'a+') as log_file:
+          # Write a line containing the flickr ID, file link, wordpress id, and the HTTP status
+          log_file.write(fileid + '|' + filelink + '|' + wpid + '|' + str(res.status_code) + '\n')
+          print('Error with ' + filelink + ': ' + str(res.status_code))
+      else:
+        logfilename = 'update' + starttimestamp + '.log'
+        with open(logfilename, 'a+') as log_file:
+          # Write a line containing the flickr ID, file link, wordpress id, and the HTTP status
+          log_file.write(fileid + '|' + filelink + '|' + wpid + '|' + str(res.status_code) + '\n')
+          print(filelink + ' updated!')
+      
