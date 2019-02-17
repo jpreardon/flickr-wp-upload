@@ -2,6 +2,10 @@
 
 ## TODO
 
+- Update images with metadata
+- Set "private" photos to private?
+- Create albums
+- Keep error log when uploading/updating?
 - Refactor rotation code
 - Move files to a subdirectory after load (as an option)?
 - Stream photos instead of straight post?
@@ -14,6 +18,16 @@
 - [requests](http://docs.python-requests.org/en/master/)
 - [pillow](https://python-pillow.org/)
 - [piexif](https://pypi.org/project/piexif/)
+
+## 2019-02-17
+
+- Working on updating meta data
+
+- Tags: It seems that any tags added by me, or another user are in the json file. The ones added by flickr's bots are not.
+- Some photos don't have names (titles). By default, they are getting the filename as the title on upload. 
+- I'm striping the flicker ID from those filenames now when they get uploaded
+- Add the flickr ID to the upload.log
+-  In some cases, the flickr ID was not where I expected it to be in the file name. It seems that the pattern is reversed (2248328315_058f0b8c35_o.jpg). I have a feeling these images never had a file name, so flickr assigned something, not sure why they would reverse the order in the filename though.
 
 ## 2019-02-16
 
@@ -67,7 +81,7 @@ Before I go much further, I want to set up a test environment rather than subjec
     - Description = description
     - There is a cover photo in the json file, maybe that can be the featured photo?
   - Things I'm going to lose
-    - Tags, not
+    - Tags?
     - Notes: Some photos have notes, I'm just going to ignore them
     - Sets & galleries. I never had any of these on flickr, so no loss for me.
     - Testimonials... meh.

@@ -6,6 +6,7 @@ import json
 import os
 from PIL import Image
 import piexif
+import re
 
 # TODO: Shouldn't run if we don't have a URL and password
 
@@ -16,17 +17,37 @@ photo_directory = sys.argv[3]
 # This is the quality of the jpgs that are saved. A value of "93" 
 # seems to keep them around the same size as the originals I was testing with.
 # I'm setting it low for testing...
+jpeg_quality = 1 #93 = close to original quality
 
-# Right now, this only applies to photos that are rotated, the others just get copied.
-jpeg_quality = 1
+# This takes a flickr download filename and returns the flickr and original filename (with extension)
+def extractflickerid(filename):
+  # File extension
+  extension = filename[filename.rfind('.'):]
+  # Flickr ID
+  flickrid = filename[:filename.rfind('_o.')]
+  flickrid = flickrid[flickrid.rfind('_') + 1:]
+  # Original filename
+  imgfile = filename[:filename.rfind('_o.')]
+  imgfile = imgfile[:imgfile.rfind('_')]
+
+  # In some cases, it seems that the pattern is reversed
+  # If there is alpha in the flickrid variable (2248328315_058f0b8c35_o.jpg)
+  # Then the flickrID came first, probably because the image didn't have a 
+  # filename to begin with
+  if re.search(r"\D", flickrid) is not None:
+    return [imgfile, flickrid  + extension]
+  else:
+    return [flickrid, imgfile + extension]
 
 
 # Loop through the given directory and upload every .jpg found
+# TODO: Should probably work on other image file types.
 for dirname, direnames, filenames in os.walk(photo_directory):
   for filename in filenames:
     if filename.endswith('.jpg'):
 
       # Rotation code starts here #
+      # TODO: This should really be refactored into one or more functions
 
       tmp_filename = 'tmp-' + filename
 
@@ -68,9 +89,14 @@ for dirname, direnames, filenames in os.walk(photo_directory):
 
       file = open(photo_directory + '/' + tmp_filename, 'rb').read()
 
+      # Strip the flickr ID out of the filename when it goes to wordpress
+      flickrid = ''
+      origfilename = ''
+      flickrid, origfilename = extractflickerid(filename)
+
       headers = {
         'cache-control': 'no-cache',
-        'content-disposition': 'attachment; filename=%s' % filename,
+        'content-disposition': 'attachment; filename=%s' % origfilename,
         'authorization': 'Basic %s' % app_password,
         'content-type': 'image/jpeg'
       }
@@ -78,12 +104,12 @@ for dirname, direnames, filenames in os.walk(photo_directory):
       if res.status_code != 201:
         print('Error with ' + filename + ': ' + str(res.status_code))
       else:
-        # Write a line containing the file name, the uploaded URL, and maybe the image ID
+        # Write a line containing the flickr ID, file name, the uploaded URL, and the image ID
         with open('upload.log', 'a+') as log_file:
-          log_file.write(filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
+          log_file.write(flickrid + '|' + filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '\n')
         print(filename + ' uploaded!')
 
-      #file.close()
+      # Delete the temp file
       os.remove(photo_directory + '/' + tmp_filename)
 
 
