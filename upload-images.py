@@ -18,7 +18,7 @@ photo_directory = sys.argv[3]
 # I'm setting it low for testing...
 
 # Right now, this only applies to photos that are rotated, the others just get copied.
-jpeg_quality = 25
+jpeg_quality = 1
 
 
 # Loop through the given directory and upload every .jpg found
@@ -35,12 +35,10 @@ for dirname, direnames, filenames in os.walk(photo_directory):
       exif_dict = piexif.load(im.info["exif"]) 
 
       if piexif.ImageIFD.Orientation in exif_dict["0th"]:
+
         orientation = exif_dict["0th"].pop(piexif.ImageIFD.Orientation)
-        if orientation == 1:
-          # Nothing to do here, just copy it
-          print('Saving existing file as new: ' + photo_directory + '/' + tmp_filename)
-          os.system('cp ' + photo_directory + '/' + filename + ' ' + photo_directory + '/' + tmp_filename)
-        elif orientation == 2:
+
+        if orientation == 2:
           im = im.transpose(Image.FLIP_LEFT_RIGHT)
         elif orientation == 3:
           im = im.rotate(180)
@@ -62,13 +60,8 @@ for dirname, direnames, filenames in os.walk(photo_directory):
         exif_dict["0th"][piexif.ImageIFD.Orientation] = 1
         exif_bytes = piexif.dump(exif_dict)
 
-        # quality='keep' doens't work here since the format is no longer 'JPEG' after
-        # rotating. I'm setting to 93 since that seems to get pretty close to the 
-        # original file size of the image I was testing with. TODO: Must be a better way
-        if orientation > 1:
-          # TODO: This is hacky
-          print('saving new jpg: ' + photo_directory + '/' + tmp_filename)
-          im.save(photo_directory + '/' + tmp_filename, 'JPEG', exif=exif_bytes, quality=jpeg_quality)
+        # quality='keep' doens't work here since the format is no longer 'JPEG' after rotating. 
+        im.save(photo_directory + '/' + tmp_filename, 'JPEG', exif=exif_bytes, quality=jpeg_quality)
 
         # Rotation code ends here #
     
