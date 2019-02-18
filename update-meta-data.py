@@ -11,7 +11,7 @@ try:
   sys.argv[4]
 except IndexError:
   argverrormsg = 'Error, wrong number of arguments!\n'
-  argverrormsg += 'Usage: $ update-meta-data.py [WP REST endpoint URL] [application password] [data directory] [upload log file]'
+  argverrormsg += 'Usage: $ update-meta-data.py [WP REST endpoint URL] [application password] [data directory] [upload log file] [flickr api key - optional]'
   sys.exit(argverrormsg)
 else:
   url = sys.argv[1]
@@ -60,7 +60,7 @@ for line in log:
       if photo_info['date_taken']:
         description += 'Date taken: ' + photo_info['date_taken'] + '\n'
 
-      description += 'Imported from flickr'
+      description += '\n<em>Imported from flickr.</em>'
 
 
       # Update wordpress based on ID in log file
@@ -84,7 +84,7 @@ for line in log:
       if photo_info['privacy'] == 'private':
         payload['status'] = 'private'
 
-      update_url = url + '/' + wpid
+      update_url = url + 'media/' + wpid
 
       res = requests.post(update_url, json = payload, headers = update_headers)
       if res.status_code != 200:
@@ -94,9 +94,69 @@ for line in log:
           log_file.write(fileid + '|' + filelink + '|' + wpid + '|' + str(res.status_code) + '\n')
           print('Error with ' + filelink + ': ' + str(res.status_code))
       else:
-        logfilename = 'update' + starttimestamp + '.log'
+        logfilename = 'update_' + starttimestamp + '.log'
         with open(logfilename, 'a+') as log_file:
           # Write a line containing the flickr ID, file link, wordpress id, and the HTTP status
           log_file.write(fileid + '|' + filelink + '|' + wpid + '|' + str(res.status_code) + '\n')
           print(filelink + ' updated!')
+
+      # Start Comments Code - this is optional, it will only run if a flickr API key is passed in
+      try:
+        sys.argv[5]
+      except:
+        break
+      else:
+        flickr_api_key = sys.argv[5]
+
+        for comment in photo_info['comments']:
+
+          # Hello flickr, give me the user info
+          flickrurl = 'https://api.flickr.com/services/rest/?method=flickr.people.getInfo&api_key=%s&user_id=%s&format=json' % (flickr_api_key, comment['user'])
+          res = requests.get(flickrurl)
+          if res.status_code != 200:
+            errlogname = 'comment_error_' + starttimestamp + '.log'
+            with open(errlogname, 'a+') as log_file:
+              # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
+              log_file.write('get from flickr' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
+              print('Error getting info for comment ' + comment['id'] + ': ' + str(res.status_code))
+          else:
+            logfilename = 'comment_' + starttimestamp + '.log'
+            with open(logfilename, 'a+') as log_file:
+              # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
+              log_file.write('get from flickr' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
+              print('Got info for comment ' + comment['id'] + ': ' + str(res.status_code))
+
+            # Flickr returns json that doesn't seem to be parseable by requests or json, so let's chop some stuff off
+            content = res.text
+            content = content[len('jsonFlickrApi('):len(content) - 1]
+            returnjson = json.loads(content)
+            commenter_name = returnjson['person']['username']['_content']
+            commenter_profile_url = returnjson['person']['profileurl']['_content']
+            
+            comment_update_url = url + 'comments'
+            comment_content = comment['comment'] + '\n\n<em>Imported from flickr.</em>'
+
+            # Build the payload
+            payload = {}
+            payload['author_name'] = commenter_name
+            payload['author_url'] = commenter_profile_url
+            payload['content'] = comment_content
+            payload['date'] = comment['date']
+            payload['post'] = wpid
+
+            res = requests.post(comment_update_url, json = payload, headers = update_headers)
+            if res.status_code != 201:
+              errlogname = 'comment_error_' + starttimestamp + '.log'
+              with open(errlogname, 'a+') as log_file:
+                # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
+                log_file.write('write to wordpress' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
+                print('Error writing comment ' + comment['id'] + ': ' + str(res.status_code))
+            else:
+              logfilename = 'comment_' + starttimestamp + '.log'
+              with open(logfilename, 'a+') as log_file:
+                # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
+                log_file.write('write to wordpress' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
+                print('Wrote comment ' + comment['id'] + ': ' + str(res.status_code))
+
+        # End Comments Code
       

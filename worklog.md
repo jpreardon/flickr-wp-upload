@@ -2,8 +2,7 @@
 
 ## TODO
 
-- Update images with comments
-- Create albums
+- Create albums (I don't think this is going to happen, but I can create posts, attach the files to them, then manually create the galleries)
 - Work on more types than .jpg
 - Refactor rotation code
 - Move files to a subdirectory after load (as an option)?
@@ -20,8 +19,6 @@
 
 ## 2019-02-17
 
-- Working on updating meta data
-
 - Tags: It seems that any tags added by me, or another user are in the json file. The ones added by flickr's bots are not.
 - Some photos don't have names (titles). By default, they are getting the filename as the title on upload. 
 - I'm striping the flicker ID from those filenames now when they get uploaded
@@ -33,6 +30,10 @@
 - Write an error log when uploading/updating in upload-images.py
 - Timestamp the upload/error logs on upload-images.py
 - Add logging to update-meta-data.py
+- Update images with comments
+  - Fetch the username from the [flickr api](https://www.flickr.com/services/api/) since they didn't provide it in the json they gave me
+  - Create a comment on WP. My settings require the user to enter a name and email address. I'll need to relax this at upload time, otherwise the comment creation will fail.
+  - I think I'll be ready for a test run as soon as I can create "albums".
 
 ## 2019-02-16
 
