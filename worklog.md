@@ -5,7 +5,6 @@
 - Refactor log writing into a utility function
 - Work on more types than .jpg
 - Refactor rotation code
-- Move files to a subdirectory after load (as an option)?
 - Stream photos instead of straight post?
 
 ## Overall Notes
@@ -23,7 +22,19 @@
 - Recreate flickr "albums" by creating a post for each album, in draft status
 - Insert a gallery in the post content in the classic style. They aren't nicest looking gallery, but it's something.
 - Attach the photos to the appropriate posts. Media can only be attached to one post at a time, so last album wins here. So long as they are attached to something, I'm happy.
-- I'm going to try turning these scripts loose on my test site and see what happens.
+- Tried turning these scripts loose on my test site and see what happens...
+  - Of course, it doesn't work, errors galore for the uploads:
+    - My plugin resettings must have overwrote .htaccess, so every request resulted in a 401 - Unauthorized. Fixed that.
+    - Images without an "orientation" in the exif data were not working. Moved the temp file save function outside of the "if orientation" block.
+    - Some images don't seem to have exif data at all. Added a check for that situation.
+    - Zero byte files were causing some problems. I'm dealing with them now, but it really highlights the need for refactoring :) Also, why zero bytes, flickr? (I requested and received my data again from flickr, no zero byte files this time)
+    - Having trouble with the exif data on a lot of images. I'm just avoiding the problem for now. Not going to worry about it unless it causes other issues (e.g. rotation problems). It seems to happen with some, but not all pictures from my Nikon D70. I wonder if I did something funky with the exif data in post processing on these.
+  - Updating meta data went better:
+    - Flickr might not always return a person when querying, I should have thought of that in the first place
+    - A lot of my images have crap titles (like 03_DSC3038), but they were actually "named" on flickr. I'll leave them alone.
+  - Creating albums/attaching photos
+    - Anything not uploaded in the first step becomes an issue here, duh. Just skipping those silently now.
+- Pretty happy with the results. Out of about 2,000 photos, I had less than 10 500 status errors. There were some errors with zero byte files from flickr, but the latest download from them looks better.
 
 ## 2019-02-17
 

@@ -137,8 +137,14 @@ for line in log:
             content = res.text
             content = content[len('jsonFlickrApi('):len(content) - 1]
             returnjson = json.loads(content)
-            commenter_name = returnjson['person']['username']['_content']
-            commenter_profile_url = returnjson['person']['profileurl']['_content']
+
+            # Person might not exist, maybe they deleted their account
+            if 'person' in returnjson:
+              commenter_name = returnjson['person']['username']['_content']
+              commenter_profile_url = returnjson['person']['profileurl']['_content']
+            else:
+              commenter_name = 'flicker user ' + comment['user']
+              commenter_profile_url = ''
             
             comment_update_url = url + 'comments'
             comment_content = comment['comment'] + '\n\n<em>Imported from flickr.</em>'

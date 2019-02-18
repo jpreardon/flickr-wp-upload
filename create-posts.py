@@ -55,7 +55,10 @@ for album in album_info['albums']:
   # adding columns="2", or whatever will change the number of columns in the gallery
   gallery_content = '<p>[gallery columns="3" ids="'
   for photo in album['photos']:
-    gallery_content += photo_ids[photo] + ","
+    # If there was an error uploading a photo, it won't be in this list
+    # skip it (silently) rather than getting an error.
+    if photo in photo_ids:
+      gallery_content += photo_ids[photo] + ","
   # Remove the last comma
   gallery_content = gallery_content[:len(gallery_content) - 1]
   gallery_content += '"]</p>'
@@ -93,19 +96,24 @@ for album in album_info['albums']:
     payload = {'post': post_id}
 
     for photo in album['photos']:
-      # Attach photos to posts by updating each photo with the post ID
-      res = requests.post(url + 'media/' + photo_ids[photo], json = payload, headers = headers)
-      if res.status_code != 200:
-        errlogname = 'media_attach_error_' + starttimestamp + '.log'
-        with open(log_dir + errlogname, 'a+') as log_file:
-          # Write a line with the album title, wp photo id and HTTP status
-          log_file.write('attach media' + '|' + album['title'] + '|' + photo_ids[photo] + '|' + str(res.status_code) + '\n')
-          print('Error attaching ' + photo_ids[photo] + ' to ' + album['title'] + ': ' + str(res.status_code))
-      else:
-        post_id = res.json()['id']
-        logfilename = 'media_attach__' + starttimestamp + '.log'
-        with open(log_dir + logfilename, 'a+') as log_file:
-          # Write a line with the album title, wp photo id and HTTP status
-          log_file.write('attach media' + '|' + album['title'] + '|' + photo_ids[photo] + '|' + str(res.status_code) + '\n')
-          print('Attached ' + photo_ids[photo] + ' to ' + album['title'] + ': ' + str(res.status_code))
+
+      # If there was an error uploading a photo, it won't be in this list
+      # skip it (silently) rather than getting an error.
+      if photo in photo_ids:
+
+        # Attach photos to posts by updating each photo with the post ID
+        res = requests.post(url + 'media/' + photo_ids[photo], json = payload, headers = headers)
+        if res.status_code != 200:
+          errlogname = 'media_attach_error_' + starttimestamp + '.log'
+          with open(log_dir + errlogname, 'a+') as log_file:
+            # Write a line with the album title, wp photo id and HTTP status
+            log_file.write('attach media' + '|' + album['title'] + '|' + photo_ids[photo] + '|' + str(res.status_code) + '\n')
+            print('Error attaching ' + photo_ids[photo] + ' to ' + album['title'] + ': ' + str(res.status_code))
+        else:
+          post_id = res.json()['id']
+          logfilename = 'media_attach__' + starttimestamp + '.log'
+          with open(log_dir + logfilename, 'a+') as log_file:
+            # Write a line with the album title, wp photo id and HTTP status
+            log_file.write('attach media' + '|' + album['title'] + '|' + photo_ids[photo] + '|' + str(res.status_code) + '\n')
+            print('Attached ' + photo_ids[photo] + ' to ' + album['title'] + ': ' + str(res.status_code))
 

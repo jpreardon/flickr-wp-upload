@@ -63,77 +63,90 @@ for dirname, direnames, filenames in os.walk(photo_directory):
   for filename in filenames:
     if filename.endswith('.jpg'):
 
-      # Rotation code starts here #
-      # TODO: This should really be refactored into one or more functions
-
       tmp_filename = 'tmp-' + filename
 
-      im = Image.open(photo_directory + '/' + filename)
-
-      exif_dict = piexif.load(im.info["exif"]) 
-
-      if piexif.ImageIFD.Orientation in exif_dict["0th"]:
-
-        orientation = exif_dict["0th"].pop(piexif.ImageIFD.Orientation)
-
-        if orientation == 2:
-          im = im.transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation == 3:
-          im = im.rotate(180)
-        elif orientation == 4:
-          im = im.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation == 5:
-          im = im.rotate(-90, expand=True).transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation == 6:
-          im = im.rotate(-90, expand=True)
-        elif orientation == 7:
-          im = im.rotate(90, expand=True).transpose(Image.FLIP_LEFT_RIGHT)
-        elif orientation == 8:
-          im = im.rotate(90, expand=True)
-
-        # process im and exif_dict...
-        w, h = im.size
-        exif_dict["0th"][piexif.ImageIFD.XResolution] = (w, 1)
-        exif_dict["0th"][piexif.ImageIFD.YResolution] = (h, 1)
-        exif_dict["0th"][piexif.ImageIFD.Orientation] = 1
-        exif_bytes = piexif.dump(exif_dict)
-
-        # quality='keep' doens't work here since the format is no longer 'JPEG' after rotating. 
-        im.save(photo_directory + '/' + tmp_filename, 'JPEG', exif=exif_bytes, quality=jpeg_quality)
-
-        # Rotation code ends here #
-    
-
-      file = open(photo_directory + '/' + tmp_filename, 'rb').read()
-
-      # Strip the flickr ID out of the filename when it goes to wordpress
-      flickrid = ''
-      origfilename = ''
-      flickrid, origfilename = extractflickerid(filename)
-
-      headers = {
-        'cache-control': 'no-cache',
-        'content-disposition': 'attachment; filename=%s' % origfilename,
-        'authorization': 'Basic %s' % app_password,
-        'content-type': 'image/jpeg'
-      }
-      res = requests.post(url, data = file, headers = headers)
-      if res.status_code != 201:
+      try:
+        im = Image.open(photo_directory + '/' + filename)
+      except:
         errlogname = 'upload_error_' + starttimestamp + '.log'
         with open(log_dir + errlogname, 'a+') as log_file:
           # Write a line containing the flickr ID, file name, and the HTTP status
-          log_file.write(flickrid + '|' + filename + '|' + str(res.status_code) + '\n')
-        print('Error with ' + filename + ': ' + str(res.status_code))
+          log_file.write(flickrid + '|' + filename + '|Error opening file\n')
+        print('Error opening ' + filename )
       else:
-        logfilename = 'upload_' + starttimestamp + '.log'
-        with open(log_dir + logfilename, 'a+') as log_file:
-          # Write a line containing the flickr ID, file name, the uploaded URL, image ID, and the HTTP status
-          log_file.write(flickrid + '|' + filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '|' + str(res.status_code) + '\n')
-        print(filename + ' uploaded!')
 
-      # Delete the temp file if it exists
-      if os.path.isfile(photo_directory + '/' + tmp_filename):
-        os.remove(photo_directory + '/' + tmp_filename)
+        # Rotation code starts here #
+        # TODO: This should really be refactored into one or more functions
+        # Some images don't have exif data, make sure they do before proceeding
+        if 'exif' in im.info:
+          exif_dict = piexif.load(im.info['exif']) 
+
+          # Only try to rotate if the orientation parameter exists
+          if piexif.ImageIFD.Orientation in exif_dict["0th"]:
+
+            orientation = exif_dict["0th"].pop(piexif.ImageIFD.Orientation)
+
+            if orientation == 2:
+              im = im.transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 3:
+              im = im.rotate(180)
+            elif orientation == 4:
+              im = im.rotate(180).transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 5:
+              im = im.rotate(-90, expand=True).transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 6:
+              im = im.rotate(-90, expand=True)
+            elif orientation == 7:
+              im = im.rotate(90, expand=True).transpose(Image.FLIP_LEFT_RIGHT)
+            elif orientation == 8:
+              im = im.rotate(90, expand=True)
+
+            # process im and exif_dict...
+            w, h = im.size
+            exif_dict["0th"][piexif.ImageIFD.XResolution] = (w, 1)
+            exif_dict["0th"][piexif.ImageIFD.YResolution] = (h, 1)
+            exif_dict["0th"][piexif.ImageIFD.Orientation] = 1
+            try:
+              exif_bytes = piexif.dump(exif_dict)
+            except:
+              print('Error writing exif data to: ' + filename)
+
+            # Rotation code ends here #
+
+        # quality='keep' doens't work here since the format is no longer 'JPEG' after rotating. 
+        im.save(photo_directory + '/' + tmp_filename, 'JPEG', exif=exif_bytes, quality=jpeg_quality)
+      
+
+        file = open(photo_directory + '/' + tmp_filename, 'rb').read()
+
+        # Strip the flickr ID out of the filename when it goes to wordpress
+        flickrid = ''
+        origfilename = ''
+        flickrid, origfilename = extractflickerid(filename)
+
+        headers = {
+          'cache-control': 'no-cache',
+          'content-disposition': 'attachment; filename=%s' % origfilename,
+          'authorization': 'Basic %s' % app_password,
+          'content-type': 'image/jpeg'
+        }
+        res = requests.post(url, data = file, headers = headers)
+        if res.status_code != 201:
+          errlogname = 'upload_error_' + starttimestamp + '.log'
+          with open(log_dir + errlogname, 'a+') as log_file:
+            # Write a line containing the flickr ID, file name, and the HTTP status
+            log_file.write(flickrid + '|' + filename + '|' + str(res.status_code) + '\n')
+          print('Error with ' + filename + ': ' + str(res.status_code))
+        else:
+          logfilename = 'upload_' + starttimestamp + '.log'
+          with open(log_dir + logfilename, 'a+') as log_file:
+            # Write a line containing the flickr ID, file name, the uploaded URL, image ID, and the HTTP status
+            log_file.write(flickrid + '|' + filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '|' + str(res.status_code) + '\n')
+          print(filename + ' uploaded!')
+
+        # Delete the temp file if it exists
+        if os.path.isfile(photo_directory + '/' + tmp_filename):
+          os.remove(photo_directory + '/' + tmp_filename)
 
 if 'errlogname' in locals():
   print('Completed with errors, check the error log file: ' + log_dir + errlogname)
