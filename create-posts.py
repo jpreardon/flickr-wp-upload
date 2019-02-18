@@ -17,7 +17,7 @@ else:
   logfile = sys.argv[4]
 
 # This is the ID of the wordpress category for the new posts, if zero, they will be uncategorized
-category_id = 93
+category_id = 0 #93
 
 # Get the start time, we'll use this for the output files
 starttimestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')

@@ -33,7 +33,7 @@ if not os.path.isdir(log_dir):
 # This is the quality of the jpgs that are saved. A value of "93" 
 # seems to keep them around the same size as the originals I was testing with.
 # I'm setting it low for testing...
-jpeg_quality = 1 #93 = close to original quality
+jpeg_quality = 85 #93 = close to original quality
 
 
 # This takes a flickr download filename and returns the flickr and original filename (with extension)
@@ -106,16 +106,19 @@ for dirname, direnames, filenames in os.walk(photo_directory):
             exif_dict["0th"][piexif.ImageIFD.XResolution] = (w, 1)
             exif_dict["0th"][piexif.ImageIFD.YResolution] = (h, 1)
             exif_dict["0th"][piexif.ImageIFD.Orientation] = 1
-            try:
-              exif_bytes = piexif.dump(exif_dict)
-            except:
-              print('Error writing exif data to: ' + filename)
+          # Rotation code ends here #
 
-            # Rotation code ends here #
+          try:
+            exif_bytes = piexif.dump(exif_dict)
+          except:
+            print('Error writing exif data to: ' + filename)
 
-        # quality='keep' doens't work here since the format is no longer 'JPEG' after rotating. 
-        im.save(photo_directory + '/' + tmp_filename, 'JPEG', exif=exif_bytes, quality=jpeg_quality)
-      
+          # quality='keep' doens't work here since the format is no longer 'JPEG' after rotating. 
+          # Preserve the ICC Color Profile if one exists.
+          im.save(photo_directory + '/' + tmp_filename, 'JPEG', icc_profile=im.info.get('icc_profile'), exif=exif_bytes, quality=jpeg_quality)
+        else:
+          # There are no exif bytes in this save
+          im.save(photo_directory + '/' + tmp_filename, 'JPEG', icc_profile=im.info.get('icc_profile'), quality=jpeg_quality)
 
         file = open(photo_directory + '/' + tmp_filename, 'rb').read()
 

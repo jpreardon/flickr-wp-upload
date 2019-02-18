@@ -35,6 +35,7 @@
   - Creating albums/attaching photos
     - Anything not uploaded in the first step becomes an issue here, duh. Just skipping those silently now.
 - Pretty happy with the results. Out of about 2,000 photos, I had less than 10 500 status errors. There were some errors with zero byte files from flickr, but the latest download from them looks better.
+- Noticed that the ICC profiles were not getting populated. Fixed that.
 
 ## 2019-02-17
 
