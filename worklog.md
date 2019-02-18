@@ -2,7 +2,7 @@
 
 ## TODO
 
-- Create albums (I don't think this is going to happen, but I can create posts, attach the files to them, then manually create the galleries)
+- Refactor log writing into a utility function
 - Work on more types than .jpg
 - Refactor rotation code
 - Move files to a subdirectory after load (as an option)?
@@ -20,6 +20,10 @@
 ## 2019-02-18
 
 - Write logs to a "logs" subdirectory.
+- Recreate flickr "albums" by creating a post for each album, in draft status
+- Insert a gallery in the post content in the classic style. They aren't nicest looking gallery, but it's something.
+- Attach the photos to the appropriate posts. Media can only be attached to one post at a time, so last album wins here. So long as they are attached to something, I'm happy.
+- I'm going to try turning these scripts loose on my test site and see what happens.
 
 ## 2019-02-17
 
