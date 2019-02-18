@@ -17,6 +17,10 @@
 - [pillow](https://python-pillow.org/)
 - [piexif](https://pypi.org/project/piexif/)
 
+## 2019-02-18
+
+- Write logs to a "logs" subdirectory.
+
 ## 2019-02-17
 
 - Tags: It seems that any tags added by me, or another user are in the json file. The ones added by flickr's bots are not.

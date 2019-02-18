@@ -22,6 +22,13 @@ else:
 # Get the start time, we'll use this for the output files
 starttimestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
+# Log file subdirectory
+log_dir = 'logs/'
+
+# Create a log file directory, if it doesn't exist
+if not os.path.isdir(log_dir):
+  os.makedirs(log_dir)
+
 # Open log file
 log = open(logfile, 'r')
 for line in log:
@@ -89,13 +96,13 @@ for line in log:
       res = requests.post(update_url, json = payload, headers = update_headers)
       if res.status_code != 200:
         errlogname = 'update_error_' + starttimestamp + '.log'
-        with open(errlogname, 'a+') as log_file:
+        with open(log_dir + errlogname, 'a+') as log_file:
           # Write a line containing the flickr ID, file link, wordpress id, and the HTTP status
           log_file.write(fileid + '|' + filelink + '|' + wpid + '|' + str(res.status_code) + '\n')
           print('Error with ' + filelink + ': ' + str(res.status_code))
       else:
         logfilename = 'update_' + starttimestamp + '.log'
-        with open(logfilename, 'a+') as log_file:
+        with open(log_dir + logfilename, 'a+') as log_file:
           # Write a line containing the flickr ID, file link, wordpress id, and the HTTP status
           log_file.write(fileid + '|' + filelink + '|' + wpid + '|' + str(res.status_code) + '\n')
           print(filelink + ' updated!')
@@ -115,13 +122,13 @@ for line in log:
           res = requests.get(flickrurl)
           if res.status_code != 200:
             errlogname = 'comment_error_' + starttimestamp + '.log'
-            with open(errlogname, 'a+') as log_file:
+            with open(log_dir + errlogname, 'a+') as log_file:
               # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
               log_file.write('get from flickr' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
               print('Error getting info for comment ' + comment['id'] + ': ' + str(res.status_code))
           else:
             logfilename = 'comment_' + starttimestamp + '.log'
-            with open(logfilename, 'a+') as log_file:
+            with open(log_dir + logfilename, 'a+') as log_file:
               # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
               log_file.write('get from flickr' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
               print('Got info for comment ' + comment['id'] + ': ' + str(res.status_code))
@@ -147,13 +154,13 @@ for line in log:
             res = requests.post(comment_update_url, json = payload, headers = update_headers)
             if res.status_code != 201:
               errlogname = 'comment_error_' + starttimestamp + '.log'
-              with open(errlogname, 'a+') as log_file:
+              with open(log_dir + errlogname, 'a+') as log_file:
                 # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
                 log_file.write('write to wordpress' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
                 print('Error writing comment ' + comment['id'] + ': ' + str(res.status_code))
             else:
               logfilename = 'comment_' + starttimestamp + '.log'
-              with open(logfilename, 'a+') as log_file:
+              with open(log_dir + logfilename, 'a+') as log_file:
                 # Write a line containing the flickr ID, comment id, wordpress id, and the HTTP status
                 log_file.write('write to wordpress' + '|' + fileid + '|' + comment['id'] + '|' + wpid + '|' + str(res.status_code) + '\n')
                 print('Wrote comment ' + comment['id'] + ': ' + str(res.status_code))

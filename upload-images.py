@@ -23,6 +23,13 @@ else:
 # Get the start time, we'll use this for the output files
 starttimestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
+# Log file subdirectory
+log_dir = 'logs/'
+
+# Create a log file directory, if it doesn't exist
+if not os.path.isdir(log_dir):
+  os.makedirs(log_dir)
+
 # This is the quality of the jpgs that are saved. A value of "93" 
 # seems to keep them around the same size as the originals I was testing with.
 # I'm setting it low for testing...
@@ -113,13 +120,13 @@ for dirname, direnames, filenames in os.walk(photo_directory):
       res = requests.post(url, data = file, headers = headers)
       if res.status_code != 201:
         errlogname = 'upload_error_' + starttimestamp + '.log'
-        with open(errlogname, 'a+') as log_file:
+        with open(log_dir + errlogname, 'a+') as log_file:
           # Write a line containing the flickr ID, file name, and the HTTP status
           log_file.write(flickrid + '|' + filename + '|' + str(res.status_code) + '\n')
         print('Error with ' + filename + ': ' + str(res.status_code))
       else:
         logfilename = 'upload_' + starttimestamp + '.log'
-        with open(logfilename, 'a+') as log_file:
+        with open(log_dir + logfilename, 'a+') as log_file:
           # Write a line containing the flickr ID, file name, the uploaded URL, image ID, and the HTTP status
           log_file.write(flickrid + '|' + filename + '|' + str(res.json()['link']) + '|' + str(res.json()['id']) + '|' + str(res.status_code) + '\n')
         print(filename + ' uploaded!')
@@ -129,9 +136,10 @@ for dirname, direnames, filenames in os.walk(photo_directory):
         os.remove(photo_directory + '/' + tmp_filename)
 
 if 'errlogname' in locals():
-  print('Completed with errors, check the error log file: ' + errlogname)
+  print('Completed with errors, check the error log file: ' + log_dir + errlogname)
 else:
   print('Completed, no errors.')
-print('Congrats! You\'re done with the upload part. The log file is ' + logfilename)
+
+print('Congrats! You\'re done with the upload part. The log file is ' + log_dir + logfilename)
 print('Try the update-meta-data.py script next! Copy/paste this:')
-print('update-meta-data.py ' + url + ' ' + app_password + ' [json data directory] ' + logfilename)
+print('update-meta-data.py ' + url + ' ' + app_password + ' [json data directory] ' + log_dir + logfilename)
