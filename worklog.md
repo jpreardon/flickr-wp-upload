@@ -1,21 +1,5 @@
 # Worklog
 
-## TODO
-
-- Refactor log writing into a utility function
-- Work on more types than .jpg
-- Refactor rotation code
-- Stream photos instead of straight post?
-
-## Overall Notes
-
-### Dependencies 
-
-- [pipenv](https://pipenv.readthedocs.io/en/latest/)
-- [requests](http://docs.python-requests.org/en/master/)
-- [pillow](https://python-pillow.org/)
-- [piexif](https://pypi.org/project/piexif/)
-
 ## 2019-02-18
 
 - Write logs to a "logs" subdirectory.
@@ -36,6 +20,26 @@
     - Anything not uploaded in the first step becomes an issue here, duh. Just skipping those silently now.
 - Pretty happy with the results. Out of about 2,000 photos, I had less than 10 500 status errors. There were some errors with zero byte files from flickr, but the latest download from them looks better.
 - Noticed that the ICC profiles were not getting populated. Fixed that.
+- Uploaded to production site
+  - The first time I ran it, there was a fatal error after about 8 minutes: Connection reset. I just deleted everything and started again.
+  - The second time, it completed. It took just under 2 hours to process and upload about 2,000 photos. There were 2 500 errors.
+  - Updating meta data and adding comments took about 45 minutes. There was only one 500 error, with the data update, I fixed it manually.
+  - Creating the album posts and attaching photos to posts took 30 minutes, there were 2 500 errors.
+- Deleted the test site and DB
+
+Final thoughts...
+
+In the end, I spent a few evenings, and a couple solid days on this little project. Was it worth it? Yes!
+
+My justification: 2,001 photos were uploaded (with meta data), 31 albums were created and 150 comments ported over. At a conservative 3 minutes per manual upload, it would have taken about 12.5 working days for me to upload this stuff. Let alone assembling the albums, and the comments would have been lost. Plus, I learned a few things along the way (e.g. how to rotate images with Python). I'm also happy I kept these as separate scripts. That allowed me to fix the one or two errors I had between steps.
+
+Would I have done anything differently? Sure, I would have written better code, but this did what I needed it to do. I got one fatal error, not sure what happened there, looked network or server related. Probably could have handled that more gracefully. The only other errors I got were 500 codes from the server. Those I should have handled and retried automatically.
+
+Here are some things I would do to make these easier to use/maintain:
+
+- Refactor log writing into a utility function
+- Work on more types than .jpg
+- Refactor rotation code
 
 ## 2019-02-17
 
