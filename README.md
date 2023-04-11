@@ -1,5 +1,7 @@
 # Flickr to Wordpress Uploadr
 
+**Update 2023-04-10: This project is archived.**
+
 These scripts import pictures and data from Flickr to Wordpress. Specifically, they use the photos and JSON files downloaded from Flickr when you request all of your data.
 
 [I downloaded my data from Flickr](https://jpreardon.com/2019/01/13/flickr-download/) in early 2019--ahead of Flickr's retention policy change. These are the scripts I used to [move everything to my existing Wordpress site](https://jpreardon.com/2019/02/18/flickr-download-part-2/).
